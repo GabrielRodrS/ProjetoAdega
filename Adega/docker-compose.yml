@@ -1,0 +1,53 @@
+services:
+  frontend:
+    build:
+      context: ./Front
+      dockerfile: Dockerfile.dev
+    container_name: next-frontend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./Front:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev -- -p 3001
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./Back
+      dockerfile: Dockerfile.dev
+      target: builder
+    container_name: nest-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=adega
+      - DB_SYNCHRONIZE=true
+    depends_on:
+      - db
+    volumes:
+      - ./Back:/usr/src/app
+      - /usr/src/app/node_modules
+    command: ["npm", "run", "start:dev"]
+
+  db:
+    image: postgres:16
+    container_name: postgres-adega
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: adega
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
