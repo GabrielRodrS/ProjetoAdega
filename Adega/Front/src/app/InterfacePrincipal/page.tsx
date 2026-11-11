@@ -16,55 +16,80 @@ interface ProdutoType {
   };
 }
 
+const images = [
+  "/LogoCarrossel1.jpeg",
+  "/LogoCarrossel4.jpeg",
+  "/LogoCarrossel3.jpeg",
+  "/LogoCarrossel2.jpeg",
+];
+
+const API_URL = "http://localhost:3000";
+
 export default function InterfacePrincipal() {
   const [currentImage, setCurrentImage] = useState(0);
+
   const [topBebidas, setTopBebidas] = useState<ProdutoType[]>([]);
   const [bebidasPorSecao, setBebidasPorSecao] = useState<ProdutoType[]>([]);
 
-  const images = [
-    "/LogoCarrossel1.jpeg",
-    "/LogoCarrossel4.jpeg",
-    "/LogoCarrossel3.jpeg",
-    "/LogoCarrossel2.jpeg",
-  ];
+  const [loadingTop, setLoadingTop] = useState(true);
+  const [loadingSecao, setLoadingSecao] = useState(true);
 
-  // --- Top 5 bebidas ---
+  // Normaliza os caminhos das imagens
+  const normalizarImagem = (imagem?: string) => {
+    if (!imagem) return "/images/default.png";
+
+    return imagem.startsWith("/") ? imagem : `/${imagem}`;
+  };
+
+  // Buscar maiores demandas
   useEffect(() => {
     const fetchTopBebidas = async () => {
       try {
-        const res = await fetch("http://localhost:3000/products/top5");
+        const res = await fetch(`${API_URL}/products/top5`);
+
+        if (!res.ok) {
+          throw new Error("Erro ao buscar produtos");
+        }
+
         const data: ProdutoType[] = await res.json();
 
-        const produtosComImagem = data.map((p) => ({
-          ...p,
-          imagem: p.imagem.startsWith("/") ? p.imagem : `/${p.imagem}`,
-        }));
-
-        setTopBebidas(produtosComImagem);
+        setTopBebidas(
+          data.map((produto) => ({
+            ...produto,
+            imagem: normalizarImagem(produto.imagem),
+          })),
+        );
       } catch (err) {
-        console.error("Erro ao carregar top 5 bebidas:", err);
+        console.error("Erro ao carregar maiores demandas:", err);
+      } finally {
+        setLoadingTop(false);
       }
     };
 
     fetchTopBebidas();
   }, []);
 
-  // --- Uma bebida de cada seção ---
+  // Buscar uma bebida de cada seção
   useEffect(() => {
     const fetchBebidasSecao = async () => {
       try {
-        const res = await fetch("http://localhost:3000/products");
+        const res = await fetch(`${API_URL}/products`);
+
+        if (!res.ok) {
+          throw new Error("Erro ao buscar produtos");
+        }
+
         const data: ProdutoType[] = await res.json();
 
         const secaoMap: Record<string, ProdutoType> = {};
+
         for (const produto of data) {
           const secaoNome = produto.secao?.nome;
+
           if (secaoNome && !secaoMap[secaoNome]) {
             secaoMap[secaoNome] = {
               ...produto,
-              imagem: produto.imagem.startsWith("/")
-                ? produto.imagem
-                : `/${produto.imagem}`,
+              imagem: normalizarImagem(produto.imagem),
             };
           }
         }
@@ -72,142 +97,252 @@ export default function InterfacePrincipal() {
         setBebidasPorSecao(Object.values(secaoMap));
       } catch (err) {
         console.error("Erro ao carregar bebidas por seção:", err);
+      } finally {
+        setLoadingSecao(false);
       }
     };
 
     fetchBebidasSecao();
   }, []);
 
-  // --- Carrossel auto avançar ---
+  // Carrossel automático
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % images.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, []);
 
-  const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
-  const prevImage = () =>
+  const nextImage = () => {
+    setCurrentImage((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
     setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
-  const goToImage = (index: number) => setCurrentImage(index);
+  };
+
+  // Componente para exibição dos produtos
+  const renderProdutos = (
+    produtos: ProdutoType[],
+    loading: boolean,
+    mensagem: string,
+  ) => {
+    if (loading) {
+      return (
+        <p className="col-span-full py-12 text-center text-sm text-slate-400">
+          Carregando produtos...
+        </p>
+      );
+    }
+
+    if (produtos.length === 0) {
+      return (
+        <p className="col-span-full py-12 text-center text-sm text-slate-400">
+          {mensagem}
+        </p>
+      );
+    }
+
+    return produtos.map((produto) => (
+      <div
+        key={produto.id}
+        className="min-w-0 w-full max-w-full overflow-hidden"
+      >
+        <Produto
+          id={produto.id}
+          nome={produto.nome}
+          preco={produto.preco}
+          imagem={produto.imagem}
+          quantidade={produto.quantidade}
+        />
+      </div>
+    ));
+  };
 
   return (
     <Header>
-      <main className="flex-grow overflow-x-hidden bg-gradient-to-b from-sky-400 via-cyan-300 to-orange-400">
-        {/* --- CARROSSEL --- */}
-        <div className="relative w-full h-[350px] sm:h-[420px] md:h-[500px] lg:h-[600px]">
-          <Image
-            src={images[currentImage]}
-            alt="Logo do StockFlow"
-            fill
-            className="transition-opacity duration-700"
-            priority
-            key={currentImage}
-          />
+      <div className="w-full min-w-0 overflow-x-hidden bg-slate-100">
+        {/* BANNER PRINCIPAL */}
+        <section className="relative w-full overflow-hidden bg-gray-50 mt-10">
+          {/* Decoração do fundo */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -left-32 -top-40 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
+            <div className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl" />
+          </div>
 
-          {/* Botões esquerda/direita */}
-          <button
-            onClick={prevImage}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
-          >
-            <svg
-              className="w-6 h-6 text-gray-800"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
+          <div className="relative mx-auto w-full max-w-[1500px]">
+            <div className="relative h-[clamp(190px,32vw,460px)] w-full">
+              <Image
+                src={images[currentImage]}
+                alt="Banner StockFlow"
+                fill
+                priority
+                sizes="100vw"
+                className="object-contain transition-opacity duration-700"
               />
-            </svg>
-          </button>
 
-          <button
-            onClick={nextImage}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
-          >
-            <svg
-              className="w-6 h-6 text-gray-800"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
-
-          {/* Indicadores */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
-            {images.map((_, index) => (
+              {/* Botão anterior */}
               <button
-                key={index}
-                onClick={() => goToImage(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentImage === index
-                    ? "bg-white w-8"
-                    : "bg-white/50 hover:bg-white/80"
-                }`}
-              />
-            ))}
+                onClick={prevImage}
+                aria-label="Imagem anterior"
+                className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#123B46] shadow-lg transition-all hover:scale-110 hover:bg-white sm:left-6 sm:h-12 sm:w-12"
+              >
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Botão próximo */}
+              <button
+                onClick={nextImage}
+                aria-label="Próxima imagem"
+                className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#123B46] shadow-lg transition-all hover:scale-110 hover:bg-white sm:right-6 sm:h-12 sm:w-12"
+              >
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+
+              {/* Indicadores */}
+              <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 sm:bottom-6">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImage(index)}
+                    aria-label={`Ir para imagem ${index + 1}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      currentImage === index
+                        ? "w-8 bg-white"
+                        : "w-2 bg-white/50 hover:bg-white"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
+        </section>
+
+        {/* CONTEÚDO PRINCIPAL */}
+        <div className="mx-auto w-full min-w-0 max-w-[1500px] px-3 py-7 sm:px-6 sm:py-10 lg:px-8">
+          {/* MAIORES DEMANDAS */}
+          <section className="mb-8 min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-7 lg:p-8">
+            <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
+              <div className="min-w-0">
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-teal-700">
+                  Produtos em destaque
+                </span>
+
+                <h2 className="mt-1 text-2xl font-extrabold text-[#123B46] sm:text-3xl">
+                  Maiores demandas
+                </h2>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Confira as bebidas mais procuradas.
+                </p>
+              </div>
+
+              <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700 sm:flex">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.8}
+                    d="M3 3v18h18M7 14l4-4 4 4 6-7"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="mb-6 h-px w-full bg-slate-100" />
+
+            <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+              {renderProdutos(
+                topBebidas,
+                loadingTop,
+                "Nenhum produto disponível no momento.",
+              )}
+            </div>
+          </section>
+
+          {/* BEBIDAS POR CATEGORIA */}
+          <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-7 lg:p-8">
+            <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
+              <div className="min-w-0">
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-teal-700">
+                  Explore nosso catálogo
+                </span>
+
+                <h2 className="mt-1 text-2xl font-extrabold text-[#123B46] sm:text-3xl">
+                  Bebidas por categoria
+                </h2>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Confira alguns dos produtos de cada seção.
+                </p>
+              </div>
+
+              <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700 sm:flex">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.8}
+                    d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v7H4zM13 14h7v7h-7z"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="mb-6 h-px w-full bg-slate-100" />
+
+            <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+              {renderProdutos(
+                bebidasPorSecao,
+                loadingSecao,
+                "Nenhuma categoria disponível no momento.",
+              )}
+            </div>
+          </section>
+
+          {/* RODAPÉ */}
+          <footer className="py-8 text-center">
+            <p className="text-xs text-slate-400">
+              StockFlow · Gestão e comercialização de bebidas
+            </p>
+          </footer>
         </div>
-
-        {/* --- Top 5 bebidas por demanda --- */}
-        <section className="bg-amber-50 backdrop-blur-md pb-5 pt-10 px-6">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-6">
-            Maiores demandas
-          </h2>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            {topBebidas.length === 0 ? (
-              <p className="text-gray-600">Carregando top 5 bebidas...</p>
-            ) : (
-              topBebidas.map((produto) => (
-                <Produto
-                  key={produto.id}
-                  id={produto.id}
-                  nome={produto.nome}
-                  preco={produto.preco}
-                  imagem={produto.imagem}
-                  quantidade={produto.quantidade}
-                />
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* --- Uma bebida de cada seção --- */}
-        <section className="bg-amber-50 backdrop-blur-md pt-5 pb-10 px-6">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-6">
-            Bebidas por categoria
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            {bebidasPorSecao.length === 0 ? (
-              <p className="text-gray-600">Carregando bebidas por seção...</p>
-            ) : (
-              bebidasPorSecao.map((produto) => (
-                <Produto
-                  key={produto.id}
-                  id={produto.id}
-                  nome={produto.nome}
-                  preco={produto.preco}
-                  imagem={produto.imagem}
-                  quantidade={produto.quantidade}
-                />
-              ))
-            )}
-          </div>
-        </section>
-      </main>
+      </div>
     </Header>
   );
 }

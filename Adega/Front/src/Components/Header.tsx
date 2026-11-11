@@ -31,7 +31,7 @@ export default function Header({ children }: HeaderProps) {
     const buscarUsuario = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/users/email/${encodeURIComponent(email)}`
+          `http://localhost:3000/users/email/${encodeURIComponent(email)}`,
         );
 
         if (!res.ok) {

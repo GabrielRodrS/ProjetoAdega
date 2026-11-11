@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { ProdutoService } from 'src/produto/produto.service';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+
+import { ProdutoService } from '../produto/produto.service';
 import { CartDto } from './dto/cart.dto';
 import { CartItemDto } from './dto/cart-item.dto';
 
@@ -7,17 +12,30 @@ import { CartItemDto } from './dto/cart-item.dto';
 export class CartService {
   private cart: CartItemDto[] = [];
 
-  constructor(private produtoService: ProdutoService) {}
+  constructor(private readonly produtoService: ProdutoService) {}
 
+  // Retorna o carrinho e o valor total
   getCart(): CartDto {
     const total = this.cart.reduce((acc, item) => acc + item.subtotal, 0);
-    return { items: this.cart, total };
+
+    return {
+      items: this.cart,
+      total,
+    };
   }
 
-  // Adiciona item ao carrinho
+  // Adiciona um produto ao carrinho
   async addItem(produtoId: number, quantidade = 1): Promise<CartDto> {
-    const produto = await this.produtoService.atualizarPorId(produtoId, {});
-    if (!produto) throw new NotFoundException('Produto não encontrado');
+    if (!Number.isInteger(produtoId) || produtoId <= 0) {
+      throw new BadRequestException('ID do produto inválido');
+    }
+
+    if (!Number.isInteger(quantidade) || quantidade <= 0) {
+      throw new BadRequestException('Quantidade inválida');
+    }
+
+    // Busca o produto sem modificar seu registro
+    const produto = await this.produtoService.buscarPorId(produtoId);
 
     const existingItem = this.cart.find(
       (item) => item.produtoId === produto.id,
@@ -25,9 +43,9 @@ export class CartService {
 
     if (existingItem) {
       existingItem.quantidade += quantidade;
-      existingItem.subtotal = Number(
-        existingItem.quantidade * existingItem.precoUnitario,
-      );
+
+      existingItem.subtotal =
+        existingItem.quantidade * existingItem.precoUnitario;
     } else {
       this.cart.push({
         produtoId: produto.id,
@@ -42,26 +60,41 @@ export class CartService {
     return this.getCart();
   }
 
+  // Remove um produto do carrinho
   removeItem(produtoId: number): CartDto {
     this.cart = this.cart.filter((item) => item.produtoId !== produtoId);
+
     return this.getCart();
   }
 
+  // Atualiza a quantidade de um produto
   updateQuantity(produtoId: number, quantidade: number): CartDto {
     const item = this.cart.find((item) => item.produtoId === produtoId);
-    if (!item) throw new NotFoundException('Produto não está no carrinho');
+
+    if (!item) {
+      throw new NotFoundException('Produto não está no carrinho');
+    }
+
+    if (!Number.isInteger(quantidade)) {
+      throw new BadRequestException('Quantidade inválida');
+    }
+
+    // Quantidade zero ou negativa remove o produto
+    if (quantidade <= 0) {
+      return this.removeItem(produtoId);
+    }
 
     item.quantidade = quantidade;
-    item.subtotal = Number(item.precoUnitario * quantidade);
 
-    if (item.quantidade <= 0) {
-      this.removeItem(produtoId);
-    }
+    item.subtotal = item.precoUnitario * quantidade;
 
     return this.getCart();
   }
 
-  clearCart(): void {
+  // Limpa todos os produtos do carrinho
+  clearCart(): CartDto {
     this.cart = [];
+
+    return this.getCart();
   }
 }
