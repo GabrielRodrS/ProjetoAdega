@@ -5,12 +5,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['http://localhost:3001', 'https://projeto-adega-two.vercel.app'],
+    origin: [
+      'http://localhost:3001',
+      'https://stockflow-zeta-eight.vercel.app',
+    ],
+    credentials: true,
   });
 
-  const port = process.env.PORT || 3000;
-
-  await app.listen(port, '0.0.0.0');
+  await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
 
 bootstrap();
