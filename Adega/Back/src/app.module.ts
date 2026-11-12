@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 
 import { DatabaseSeedService } from './database-seed.service';
 
@@ -21,7 +22,7 @@ import { CartModule } from './Carrinho/cart.module';
 
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: './database.sqlite',
+      database: process.env.DB_PATH || join(process.cwd(), 'database.sqlite'),
       autoLoadEntities: true,
       synchronize: true,
       logging: true,
