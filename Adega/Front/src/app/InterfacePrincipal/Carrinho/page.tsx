@@ -74,23 +74,25 @@ export default function Carrinho() {
     try {
       for (const item of cart.items) {
         const res = await fetch(
-          `http://localhost:3000/products/${item.produtoId}`
+          `http://localhost:3000/products/${item.produtoId}`,
         );
         if (!res.ok) throw new Error(`Erro ao verificar produto ${item.nome}`);
         const produto = await res.json();
 
         if (item.quantidade > produto.quantidade) {
           setMensagemErro(
-            `Quantidade insuficiente para ${item.nome}. Disponível: ${produto.quantidade}`
+            `Quantidade insuficiente para ${item.nome}. Disponível: ${produto.quantidade}`,
           );
           return;
         }
       }
 
       router.push("/InterfacePrincipal/Carrinho/PaginaVendaCarrinho");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setMensagemErro(`❌ ${err.message}`);
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido";
+      setMensagemErro(`❌ ${errorMessage}`);
     }
   };
 

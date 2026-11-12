@@ -1,47 +1,39 @@
 "use client";
-
 import { useSearchParams, useParams } from "next/navigation";
 import Header from "@/Components/Header";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-
 export default function PaginaVenda() {
   const params = useParams();
   const searchParams = useSearchParams();
-
   const id = params.id;
   const nome = searchParams.get("nome");
   const preco = Number(searchParams.get("preco"));
   const imagem = searchParams.get("imagem");
-
   // STATES
   const [quantidadeSelecionada, setQuantidadeSelecionada] = useState(1);
   const [pagamento, setPagamento] = useState("Pix");
   const [estoqueAtual, setEstoqueAtual] = useState(0);
   const [total, setTotal] = useState(preco);
   const [msg, setMsg] = useState("");
-
   // Campos pix
   const [nomeCliente, setNomeCliente] = useState("");
   const [cpf, setCpf] = useState("");
   const [chavePix, setChavePix] = useState("");
-
   // Campos cartão
   const [nomeCartao, setNomeCartao] = useState("");
   const [numeroCartao, setNumeroCartao] = useState("");
   const [validadeCartao, setValidadeCartao] = useState("");
   const [cvvCartao, setCvvCartao] = useState("");
-
   // Valores divididos
   const [valorPix, setValorPix] = useState(0);
   const [valorCartao, setValorCartao] = useState(0);
-
   useEffect(() => {
     async function buscarEstoque() {
       if (!nome) return;
       try {
         const resposta = await fetch(
-          `http://localhost:3000/products/nome/${encodeURIComponent(nome)}`
+          `http://localhost:3000/products/nome/${encodeURIComponent(nome)}`,
         );
         const dados = await resposta.json();
         if (dados?.quantidade !== undefined) {
@@ -53,65 +45,52 @@ export default function PaginaVenda() {
     }
     buscarEstoque();
   }, [nome]);
-
   useEffect(() => {
     setTotal(preco * quantidadeSelecionada);
-
     setValorPix(0);
     setValorCartao(0);
-  }, [quantidadeSelecionada]);
-
+  }, [quantidadeSelecionada, preco]);
   function alterarQuantidade(value: string) {
     const novaQuantidade = Number(value);
-
     if (isNaN(novaQuantidade) || novaQuantidade < 1) {
       setQuantidadeSelecionada(1);
       return;
     }
-
     if (novaQuantidade > estoqueAtual) {
       setMsg("Estoque insuficiente!");
       return;
     }
-
     setQuantidadeSelecionada(novaQuantidade);
     setMsg("");
   }
-
   // === CONFIRMAR VENDA ===
   async function confirmarVenda() {
     setMsg("");
-
     if (quantidadeSelecionada > estoqueAtual) {
       setMsg("Não há estoque suficiente!");
       return;
     }
-
     if (pagamento === "Pix") {
       if (!nomeCliente || !cpf || !chavePix) {
         setMsg("Preencha todos os campos do Pix!");
         return;
       }
     }
-
     if (pagamento === "Cartão") {
       if (!nomeCartao || !numeroCartao || !validadeCartao || !cvvCartao) {
         setMsg("Preencha todos os campos do cartão!");
         return;
       }
     }
-
     if (pagamento === "Dividido") {
       if (valorPix + valorCartao !== total) {
         setMsg("A soma Pix + Cartão deve ser igual ao total!");
         return;
       }
-
       if (valorPix > 0 && (!nomeCliente || !cpf || !chavePix)) {
         setMsg("Complete os dados do Pix!");
         return;
       }
-
       if (
         valorCartao > 0 &&
         (!nomeCartao || !numeroCartao || !validadeCartao || !cvvCartao)
@@ -120,7 +99,6 @@ export default function PaginaVenda() {
         return;
       }
     }
-
     try {
       const pedido = {
         formaPagamento: pagamento,
@@ -133,16 +111,13 @@ export default function PaginaVenda() {
             : { metodo: pagamento },
         itens: [{ produtoId: Number(id), quantidade: quantidadeSelecionada }],
       };
-
       const response = await fetch("http://localhost:3000/pedidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido),
       });
-
       if (response.ok) {
         setMsg("✅ Venda realizada com sucesso!");
-
         setQuantidadeSelecionada(1);
         setEstoqueAtual((prev) => prev - quantidadeSelecionada);
         setValorPix(0);
@@ -150,11 +125,10 @@ export default function PaginaVenda() {
       } else {
         setMsg("Erro ao registrar venda.");
       }
-    } catch (error) {
+    } catch {
       setMsg("Erro ao comunicar com servidor.");
     }
   }
-
   return (
     <Header>
       <div className="bg-gray-100 flex-1 flex flex-col items-center p-8 text-black w-full">
@@ -169,16 +143,13 @@ export default function PaginaVenda() {
               />
             </div>
           )}
-
           <p className="text-xl font-semibold mt-4">{nome}</p>
           <p className="text-lg text-rose-700 font-bold">
             R$ {preco.toFixed(2)}
           </p>
-
           <p className="mt-2">
             Estoque: <b>{estoqueAtual}</b>
           </p>
-
           {/* QUANTIDADE */}
           <div className="mt-6">
             <p className="font-semibold">Quantidade:</p>
@@ -190,12 +161,10 @@ export default function PaginaVenda() {
               onChange={(e) => alterarQuantidade(e.target.value)}
             />
           </div>
-
           {/* TOTAL */}
           <p className="mt-4 text-lg">
             Total: <b className="text-blue-700">R$ {total.toFixed(2)}</b>
           </p>
-
           {/* MÉTODO DE PAGAMENTO */}
           <div className="mt-6">
             <p className="font-semibold">Método de pagamento:</p>
@@ -210,7 +179,6 @@ export default function PaginaVenda() {
               >
                 Pix
               </button>
-
               <button
                 onClick={() => setPagamento("Cartão")}
                 className={`px-4 py-2 rounded-lg border ${
@@ -221,7 +189,6 @@ export default function PaginaVenda() {
               >
                 Cartão
               </button>
-
               <button
                 onClick={() => setPagamento("Dividido")}
                 className={`px-4 py-2 rounded-lg border ${
@@ -234,12 +201,10 @@ export default function PaginaVenda() {
               </button>
             </div>
           </div>
-
           {/* FORM PIX */}
           {pagamento === "Pix" && (
             <div className="mt-6 bg-gray-200 p-4 rounded-xl text-left">
               <h3 className="font-bold mb-3">Dados Pix</h3>
-
               <input
                 type="text"
                 placeholder="Nome completo"
@@ -247,7 +212,6 @@ export default function PaginaVenda() {
                 value={nomeCliente}
                 onChange={(e) => setNomeCliente(e.target.value)}
               />
-
               <input
                 type="text"
                 placeholder="CPF"
@@ -255,7 +219,6 @@ export default function PaginaVenda() {
                 value={cpf}
                 onChange={(e) => setCpf(e.target.value)}
               />
-
               <input
                 type="text"
                 placeholder="Chave Pix"
@@ -265,12 +228,10 @@ export default function PaginaVenda() {
               />
             </div>
           )}
-
           {/* FORM CARTÃO */}
           {pagamento === "Cartão" && (
             <div className="mt-6 bg-gray-200 p-4 rounded-xl text-left">
               <h3 className="font-bold mb-3">Dados Cartão</h3>
-
               <input
                 type="text"
                 placeholder="Nome no cartão"
@@ -278,7 +239,6 @@ export default function PaginaVenda() {
                 value={nomeCartao}
                 onChange={(e) => setNomeCartao(e.target.value)}
               />
-
               <input
                 type="text"
                 placeholder="Número do cartão"
@@ -286,7 +246,6 @@ export default function PaginaVenda() {
                 value={numeroCartao}
                 onChange={(e) => setNumeroCartao(e.target.value)}
               />
-
               <div className="flex gap-3">
                 <input
                   type="text"
@@ -295,7 +254,6 @@ export default function PaginaVenda() {
                   value={validadeCartao}
                   onChange={(e) => setValidadeCartao(e.target.value)}
                 />
-
                 <input
                   type="text"
                   placeholder="CVV"
@@ -306,15 +264,11 @@ export default function PaginaVenda() {
               </div>
             </div>
           )}
-
-          {/* PAGAMENTO DIVIDIDO — OPÇÃO A COMPLETA */}
+          {/* PAGAMENTO DIVIDIDO */}
           {pagamento === "Dividido" && (
             <div className="mt-6 bg-purple-100 p-4 rounded-xl text-left">
               <h3 className="font-bold mb-2">Pagamento dividido</h3>
-
               <p>Total: R$ {total.toFixed(2)}</p>
-
-              {/* CAMPOS COM OPÇÃO A */}
               <div className="flex gap-3 mt-3">
                 {/* PIX */}
                 <input
@@ -325,17 +279,13 @@ export default function PaginaVenda() {
                   onChange={(e) => {
                     let v = Number(e.target.value);
                     if (isNaN(v) || v < 0) v = 0;
-
                     if (v > total) v = total;
-
                     if (v + valorCartao > total) {
                       setValorCartao(total - v);
                     }
-
                     setValorPix(v);
                   }}
                 />
-
                 {/* CARTÃO */}
                 <input
                   type="number"
@@ -345,23 +295,18 @@ export default function PaginaVenda() {
                   onChange={(e) => {
                     let v = Number(e.target.value);
                     if (isNaN(v) || v < 0) v = 0;
-
                     if (v > total) v = total;
-
                     if (valorPix + v > total) {
                       setValorPix(total - v);
                     }
-
                     setValorCartao(v);
                   }}
                 />
               </div>
-
               {/* DADOS PIX */}
               {valorPix > 0 && (
                 <div className="mt-3">
                   <h4 className="font-semibold">Dados Pix</h4>
-
                   <input
                     type="text"
                     placeholder="Nome completo"
@@ -369,7 +314,6 @@ export default function PaginaVenda() {
                     value={nomeCliente}
                     onChange={(e) => setNomeCliente(e.target.value)}
                   />
-
                   <input
                     type="text"
                     placeholder="CPF"
@@ -377,7 +321,6 @@ export default function PaginaVenda() {
                     value={cpf}
                     onChange={(e) => setCpf(e.target.value)}
                   />
-
                   <input
                     type="text"
                     placeholder="Chave Pix"
@@ -387,12 +330,10 @@ export default function PaginaVenda() {
                   />
                 </div>
               )}
-
               {/* DADOS CARTÃO */}
               {valorCartao > 0 && (
                 <div className="mt-3">
                   <h4 className="font-semibold">Dados Cartão</h4>
-
                   <input
                     type="text"
                     placeholder="Nome no cartão"
@@ -400,7 +341,6 @@ export default function PaginaVenda() {
                     value={nomeCartao}
                     onChange={(e) => setNomeCartao(e.target.value)}
                   />
-
                   <input
                     type="text"
                     placeholder="Número do cartão"
@@ -408,7 +348,6 @@ export default function PaginaVenda() {
                     value={numeroCartao}
                     onChange={(e) => setNumeroCartao(e.target.value)}
                   />
-
                   <div className="flex gap-3">
                     <input
                       type="text"
@@ -417,7 +356,6 @@ export default function PaginaVenda() {
                       value={validadeCartao}
                       onChange={(e) => setValidadeCartao(e.target.value)}
                     />
-
                     <input
                       type="text"
                       placeholder="CVV"
@@ -428,20 +366,16 @@ export default function PaginaVenda() {
                   </div>
                 </div>
               )}
-
               {/* RESUMO */}
               <div className="mt-4 p-3 bg-white rounded border">
                 <p className="font-semibold">Resumo</p>
-
                 <p className="text-green-700 font-bold">
                   Pix: R$ {valorPix.toFixed(2)}
                 </p>
                 <p className="text-blue-700 font-bold">
                   Cartão: R$ {valorCartao.toFixed(2)}
                 </p>
-
                 <hr className="my-2" />
-
                 <p>
                   Soma:{" "}
                   <span
@@ -457,7 +391,6 @@ export default function PaginaVenda() {
               </div>
             </div>
           )}
-
           {/* BOTÃO */}
           <button
             onClick={confirmarVenda}
@@ -465,7 +398,6 @@ export default function PaginaVenda() {
           >
             Confirmar Venda
           </button>
-
           {msg && <p className="mt-4 text-red-800 font-semibold">{msg}</p>}
         </div>
       </div>

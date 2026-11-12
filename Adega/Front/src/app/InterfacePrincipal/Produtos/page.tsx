@@ -1,44 +1,36 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Header from "@/Components/Header";
 import Produto from "@/Components/Produto";
 import HeaderCategorias from "@/Components/HeaderCategorias";
-
-interface Produto {
+interface ProdutoType {
   id: number;
   nome: string;
   preco: string;
   imagem: string;
   quantidade: number;
 }
-
 export default function Produtos() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [filtro, setFiltro] = useState<string>(""); // texto da pesquisa
-  const [ordenacao, setOrdenacao] = useState<string>(""); // tipo de ordenação
-
+  const [produtos, setProdutos] = useState<ProdutoType[]>([]);
+  const [filtro, setFiltro] = useState<string>("");
+  const [ordenacao, setOrdenacao] = useState<string>("");
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
         const res = await fetch("http://localhost:3000/products");
         const data = await res.json();
-
-        const produtosComImagem = data.map((p: Produto) => ({
+        const produtosComImagem = data.map((p: ProdutoType) => ({
           ...p,
           imagem: p.imagem.startsWith("/") ? p.imagem : `/${p.imagem}`,
         }));
-
         setProdutos(produtosComImagem);
       } catch (error) {
         console.error("Erro ao carregar produtos:", error);
       }
     };
-
     fetchProdutos();
   }, []);
 
-  // Aplica pesquisa e ordenação
   const produtosFiltrados = [...produtos]
     .filter((p) => p.nome.toLowerCase().includes(filtro.toLowerCase()))
     .sort((a, b) => {
@@ -49,17 +41,13 @@ export default function Produtos() {
       if (ordenacao === "alfabetico") return a.nome.localeCompare(b.nome);
       return 0;
     });
-
   return (
     <Header>
       <HeaderCategorias />
-
       <div className="bg-white flex flex-col items-center h-full">
         <h1 className="text-2xl font-extrabold text-black m-5">
           Produtos Disponíveis
         </h1>
-
-        {/* 🔍 FILTROS E PESQUISA */}
         <div className="flex flex-wrap justify-center items-center gap-4 mb-6 w-full px-6 text-gray-600">
           <input
             type="text"
@@ -78,7 +66,6 @@ export default function Produtos() {
           >
             Maior Preço
           </button>
-
           <button
             onClick={() => setOrdenacao("menorPreco")}
             className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
@@ -89,7 +76,6 @@ export default function Produtos() {
           >
             Menor Preço
           </button>
-
           <button
             onClick={() => setOrdenacao("alfabetico")}
             className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
@@ -101,8 +87,6 @@ export default function Produtos() {
             Alfabético
           </button>
         </div>
-
-        {/* LISTA DE PRODUTOS */}
         <main className="bg-white w-full flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 p-6 pt-2 overflow-auto">
           {produtosFiltrados.length === 0 ? (
             <p className="text-gray-500">Nenhum produto encontrado.</p>

@@ -1,28 +1,23 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import Header from "@/Components/Header";
 import Pedido from "@/Components/Pedido";
-
 interface PedidoItem {
   produtoId: number;
   quantidade: number;
 }
-
 interface PedidoType {
   id: number;
   totalItens: number;
   precoTotal: number;
   status: string;
-  formaPagamento: string; // agora usamos formaPagamento
+  formaPagamento: string;
   itens: PedidoItem[];
 }
-
 export default function Pedidos() {
   const [pedidos, setPedidos] = useState<PedidoType[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
-
   useEffect(() => {
     async function buscarPedidos() {
       try {
@@ -32,17 +27,17 @@ export default function Pedidos() {
         }
         const dados = await resposta.json();
         setPedidos(dados);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(error);
-        setErro(error.message || "Erro desconhecido");
+        const errorMessage =
+          error instanceof Error ? error.message : "Erro desconhecido";
+        setErro(errorMessage);
       } finally {
         setLoading(false);
       }
     }
-
     buscarPedidos();
   }, []);
-
   return (
     <Header>
       <div className="h-full bg-white overflow-hidden">
@@ -57,7 +52,6 @@ export default function Pedidos() {
               <li className="hover:bg-rose-100 p-3">Forma de Pagamento</li>
             </ul>
           </aside>
-
           <section className="flex flex-col flex-1 p-6 overflow-auto">
             <header className="grid grid-cols-5 gap-4 mb-4 border-b border-gray-200 pb-2">
               <p className="text-base font-bold text-amber-700">Pedido</p>
@@ -66,7 +60,6 @@ export default function Pedidos() {
               <p className="text-base font-bold text-amber-700">Pagamento</p>
               <p className="text-base font-bold text-amber-700">Status</p>
             </header>
-
             <div className="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-150px)]">
               {loading && <p>Carregando pedidos...</p>}
               {erro && <p className="text-red-500">{erro}</p>}
