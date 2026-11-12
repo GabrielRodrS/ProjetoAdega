@@ -5,10 +5,16 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: [
-      'http://localhost:3001',
-      'https://stockflow-zeta-eight.vercel.app',
-    ],
+    origin: (origin, callback) => {
+      const permitido =
+        !origin ||
+        origin === 'http://localhost:3001' ||
+        /^https:\/\/(stockflow|projeto-adega-two)(-[a-z0-9-]+)?\.vercel\.app$/.test(
+          origin,
+        );
+
+      callback(null, permitido);
+    },
     credentials: true,
   });
 
