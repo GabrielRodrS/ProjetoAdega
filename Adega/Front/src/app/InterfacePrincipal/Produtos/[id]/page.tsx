@@ -24,7 +24,7 @@ export default function PaginaProduto() {
   const [quantidadeAdicionar, setQuantidadeAdicionar] = useState(0);
   const [quantidadeRemover, setQuantidadeRemover] = useState(0);
   const [carregando, setCarregando] = useState(false);
-  const [mensagemErro, setMensagemErro] = useState(""); // ← nova state
+  const [mensagemErro, setMensagemErro] = useState("");
 
   // Buscar produto pelo nome
   useEffect(() => {
@@ -34,13 +34,13 @@ export default function PaginaProduto() {
       try {
         const response = await fetch(
           `http://localhost:3000/products/nome/${encodeURIComponent(
-            nomeProduto
-          )}`
+            nomeProduto,
+          )}`,
         );
         if (!response.ok) throw new Error("Erro ao buscar produto");
         const data = await response.json();
         setProduto(data);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(error);
         alert("❌ Erro ao buscar dados do produto");
       }
@@ -76,7 +76,7 @@ export default function PaginaProduto() {
 
       const data = await response.json();
       setProduto((prev) => prev && { ...prev, quantidade: data.quantidade });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       alert("❌ Erro ao adicionar quantidade");
     } finally {
@@ -98,7 +98,7 @@ export default function PaginaProduto() {
 
       const data = await response.json();
       setProduto((prev) => prev && { ...prev, quantidade: data.quantidade });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       alert("❌ Erro ao remover quantidade");
     } finally {
@@ -108,12 +108,12 @@ export default function PaginaProduto() {
 
   const handleAdicionarAoPedido = async () => {
     if (!produto || produto.quantidade < 1) {
-      setMensagemErro("Produto indisponível!"); // ← mensagem em vermelho
+      setMensagemErro("Produto indisponível!");
       return;
     }
 
     setCarregando(true);
-    setMensagemErro(""); // limpa mensagem de erro
+    setMensagemErro("");
     try {
       const response = await fetch(
         `http://localhost:3000/cart/add/${produto.id}`,
@@ -121,7 +121,7 @@ export default function PaginaProduto() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ quantidade: 1 }),
-        }
+        },
       );
 
       let data;
@@ -135,18 +135,20 @@ export default function PaginaProduto() {
         console.error("Erro do backend:", response.status, data);
         throw new Error(
           data?.message ||
-            `Erro ao adicionar ao pedido (status ${response.status})`
+            `Erro ao adicionar ao pedido (status ${response.status})`,
         );
       }
 
       setProduto(
-        (prev) => prev && { ...prev, quantidade: prev.quantidade - 1 }
+        (prev) => prev && { ...prev, quantidade: prev.quantidade - 1 },
       );
 
       router.push("/InterfacePrincipal/Carrinho");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      setMensagemErro(`❌ ${error.message}`);
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido";
+      setMensagemErro(`❌ ${errorMessage}`);
     } finally {
       setCarregando(false);
     }
@@ -193,7 +195,7 @@ export default function PaginaProduto() {
                   value={quantidadeAdicionar}
                   onChange={(e) =>
                     setQuantidadeAdicionar(
-                      Math.max(0, parseInt(e.target.value) || 0)
+                      Math.max(0, parseInt(e.target.value) || 0),
                     )
                   }
                   className="text-black border border-gray-300 rounded-lg px-2 py-1 w-16 text-center focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -224,7 +226,7 @@ export default function PaginaProduto() {
                   value={quantidadeRemover}
                   onChange={(e) =>
                     setQuantidadeRemover(
-                      Math.max(0, parseInt(e.target.value) || 0)
+                      Math.max(0, parseInt(e.target.value) || 0),
                     )
                   }
                   className="text-black border border-gray-300 rounded-lg px-2 py-1 w-16 text-center focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -250,7 +252,7 @@ export default function PaginaProduto() {
                     `nome=${encodeURIComponent(produto.nome)}` +
                     `&preco=${encodeURIComponent(produto.preco)}` +
                     `&imagem=${encodeURIComponent(produto.imagem)}` +
-                    `&quantidade=${produto.quantidade}`
+                    `&quantidade=${produto.quantidade}`,
                 )
               }
               className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-lg transition shadow-md mt-2 text-sm"
