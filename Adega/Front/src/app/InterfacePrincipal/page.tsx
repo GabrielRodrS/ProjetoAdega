@@ -23,7 +23,7 @@ const images = [
   "/LogoCarrossel2.jpeg",
 ];
 
-const API_URL = "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function InterfacePrincipal() {
   const [currentImage, setCurrentImage] = useState(0);
