@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import Header from "@/Components/Header";
 import Produto from "@/Components/Produto";
 import HeaderCategorias from "@/Components/HeaderCategorias";
+
 interface ProdutoType {
   id: number;
   nome: string;
@@ -10,14 +14,17 @@ interface ProdutoType {
   imagem: string;
   quantidade: number;
 }
+
 export default function Produtos() {
   const [produtos, setProdutos] = useState<ProdutoType[]>([]);
   const [filtro, setFiltro] = useState<string>("");
   const [ordenacao, setOrdenacao] = useState<string>("");
+
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
         const res = await fetch("http://localhost:3000/products");
+        if (!res.ok) return;
         const data = await res.json();
         const produtosComImagem = data.map((p: ProdutoType) => ({
           ...p,
@@ -41,6 +48,7 @@ export default function Produtos() {
       if (ordenacao === "alfabetico") return a.nome.localeCompare(b.nome);
       return 0;
     });
+
   return (
     <Header>
       <HeaderCategorias />

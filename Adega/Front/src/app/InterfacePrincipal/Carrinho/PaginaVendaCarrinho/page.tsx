@@ -58,14 +58,14 @@ export default function PaginaVendaCarrinho() {
       // Verifica estoque de cada item
       for (const item of cartItems) {
         const res = await fetch(
-          `http://localhost:3000/products/nome/${encodeURIComponent(item.nome)}`
+          `http://localhost:3000/products/nome/${encodeURIComponent(item.nome)}`,
         );
         if (!res.ok) throw new Error(`Erro ao verificar produto ${item.nome}`);
         const produto = await res.json();
 
         if (item.quantidade > produto.quantidade) {
           throw new Error(
-            `Estoque insuficiente para ${item.nome} (Disponível: ${produto.quantidade})`
+            `Estoque insuficiente para ${item.nome} (Disponível: ${produto.quantidade})`,
           );
         }
       }
@@ -138,8 +138,10 @@ export default function PaginaVendaCarrinho() {
 
       // Redireciona para pedidos
       router.push("/InterfacePrincipal/Pedidos");
-    } catch (error: any) {
-      setMsg(error.message || "Erro ao processar venda");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro ao processar venda";
+      setMsg(errorMessage);
     }
   }
 
@@ -280,7 +282,6 @@ export default function PaginaVendaCarrinho() {
                 />
               </div>
 
-              {/* Campos Pix e Cartão se houver valor */}
               {valorPix > 0 && (
                 <div className="mt-4 p-4 bg-gray-200 rounded-xl text-left">
                   <input
@@ -346,7 +347,7 @@ export default function PaginaVendaCarrinho() {
 
           <button
             onClick={confirmarVenda}
-            className="mt-6 bg-rose-600 text-white w-full py-2 rounded-xl"
+            className="mt-6 bg-rose-600 text-white w-full py-2 rounded-xl cursor-pointer"
           >
             Confirmar Venda
           </button>
