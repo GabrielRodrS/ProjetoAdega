@@ -20,6 +20,8 @@ interface Cart {
   total: number;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function Carrinho() {
   const [cart, setCart] = useState<Cart>({ items: [], total: 0 });
   const [mensagemErro, setMensagemErro] = useState("");
@@ -27,7 +29,7 @@ export default function Carrinho() {
 
   const fetchCart = async () => {
     try {
-      const res = await fetch("http://localhost:3000/cart");
+      const res = await fetch(`${API_URL}/cart`);
       const data: Cart = await res.json();
       setCart(data);
     } catch (err) {

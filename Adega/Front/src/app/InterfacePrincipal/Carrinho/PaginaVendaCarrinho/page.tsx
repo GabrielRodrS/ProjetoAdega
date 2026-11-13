@@ -37,10 +37,12 @@ export default function PaginaVendaCarrinho() {
   const [valorPix, setValorPix] = useState(0);
   const [valorCartao, setValorCartao] = useState(0);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     async function fetchCart() {
       try {
-        const res = await fetch("http://localhost:3000/cart");
+        const res = await fetch(`${API_URL}/cart`);
         const data: { items: CartItem[]; total: number } = await res.json();
         setCartItems(data.items);
         setTotal(data.total);

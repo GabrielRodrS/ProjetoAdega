@@ -33,9 +33,7 @@ export default function PaginaProduto() {
     const fetchProduto = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3000/products/nome/${encodeURIComponent(
-            nomeProduto,
-          )}`,
+          `${API_URL}/products/nome/${encodeURIComponent(nomeProduto)}`,
         );
         if (!response.ok) throw new Error("Erro ao buscar produto");
         const data = await response.json();
@@ -48,6 +46,8 @@ export default function PaginaProduto() {
 
     fetchProduto();
   }, [nomeProduto]);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   if (!produto) {
     return (
@@ -64,7 +64,7 @@ export default function PaginaProduto() {
     if (quantidadeAdicionar <= 0) return;
     setCarregando(true);
     try {
-      const response = await fetch("http://localhost:3000/products/aumentar", {
+      const response = await fetch(`${API_URL}/products/aumentar`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -89,7 +89,7 @@ export default function PaginaProduto() {
     if (quantidadeRemover <= 0) return;
     setCarregando(true);
     try {
-      const response = await fetch("http://localhost:3000/products/diminuir", {
+      const response = await fetch(`${API_URL}/products/diminuir`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: produto.id, quantidade: quantidadeRemover }),
@@ -115,14 +115,11 @@ export default function PaginaProduto() {
     setCarregando(true);
     setMensagemErro("");
     try {
-      const response = await fetch(
-        `http://localhost:3000/cart/add/${produto.id}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quantidade: 1 }),
-        },
-      );
+      const response = await fetch(`${API_URL}/cart/add/${produto.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantidade: 1 }),
+      });
 
       let data;
       try {

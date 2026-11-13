@@ -10,6 +10,9 @@ export default function PaginaVenda() {
   const nome = searchParams.get("nome");
   const preco = Number(searchParams.get("preco"));
   const imagem = searchParams.get("imagem");
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   // STATES
   const [quantidadeSelecionada, setQuantidadeSelecionada] = useState(1);
   const [pagamento, setPagamento] = useState("Pix");
@@ -33,7 +36,7 @@ export default function PaginaVenda() {
       if (!nome) return;
       try {
         const resposta = await fetch(
-          `http://localhost:3000/products/nome/${encodeURIComponent(nome)}`,
+          `${API_URL}/products/nome/${encodeURIComponent(nome)}`,
         );
         const dados = await resposta.json();
         if (dados?.quantidade !== undefined) {
@@ -111,7 +114,7 @@ export default function PaginaVenda() {
             : { metodo: pagamento },
         itens: [{ produtoId: Number(id), quantidade: quantidadeSelecionada }],
       };
-      const response = await fetch("http://localhost:3000/pedidos", {
+      const response = await fetch(`${API_URL}/pedidos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido),

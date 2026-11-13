@@ -10,6 +10,8 @@ interface Produto {
   imagem: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function HeaderCategorias() {
   const router = useRouter();
 
@@ -27,27 +29,42 @@ export default function HeaderCategorias() {
 
   const fetchProdutos = async (categoria: string) => {
     setLoading(true);
+
     try {
+      if (!API_URL) {
+        throw new Error("NEXT_PUBLIC_API_URL não configurada");
+      }
+
       const res = await fetch(
-        `http://localhost:3000/products?categoria=${categoria}`
+        `${API_URL}/products?categoria=${encodeURIComponent(categoria)}`,
       );
+
+      if (!res.ok) {
+        throw new Error("Erro ao buscar produtos");
+      }
+
       const data = await res.json();
+
       console.log("Produtos recebidos:", data);
+
       setProdutos(data.slice(0, 4));
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
+      setProdutos([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (hoveredCategoria) fetchProdutos(hoveredCategoria);
+    if (hoveredCategoria) {
+      fetchProdutos(hoveredCategoria);
+    }
   }, [hoveredCategoria]);
 
   return (
     <div className="relative w-full bg-rose-900 text-white shadow-md z-50">
-      {/* ⚠️ overflow-visible é ESSENCIAL para o dropdown não ser cortado */}
+      {/* MENU DE CATEGORIAS */}
       <div className="flex items-center justify-center gap-20 px-6 py-3 overflow-visible whitespace-nowrap">
         {categorias.map((cat) => (
           <div
@@ -59,7 +76,7 @@ export default function HeaderCategorias() {
             <button
               onClick={() =>
                 router.push(
-                  `/InterfacePrincipal/Produtos/Categoria?categoria=${cat.query}`
+                  `/InterfacePrincipal/Produtos/Categoria?categoria=${encodeURIComponent(cat.query)}`,
                 )
               }
               className="cursor-pointer text-sm sm:text-base font-semibold hover:text-yellow-400 transition-colors"
@@ -67,7 +84,7 @@ export default function HeaderCategorias() {
               {cat.nome}
             </button>
 
-            {/* Dropdown ao passar o mouse */}
+            {/* DROPDOWN */}
             {hoveredCategoria === cat.query && (
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white text-black shadow-lg rounded-md p-4 w-[35rem] max-w-[90vw] z-50">
                 {loading ? (
@@ -81,7 +98,7 @@ export default function HeaderCategorias() {
                         key={p.id}
                         onClick={() =>
                           router.push(
-                            `/InterfacePrincipal/Produtos/Detalhes/${p.id}`
+                            `/InterfacePrincipal/Produtos/Detalhes/${p.id}`,
                           )
                         }
                         className="flex flex-col items-center justify-start text-center bg-white border border-gray-200 rounded-lg p-3 min-w-[120px] hover:bg-gray-100 cursor-pointer shadow-sm"
@@ -91,9 +108,11 @@ export default function HeaderCategorias() {
                           alt={p.nome}
                           className="w-20 h-20 rounded-md object-cover mb-2"
                         />
+
                         <p className="text-sm font-semibold text-gray-800">
                           {p.nome}
                         </p>
+
                         <p className="text-xs text-gray-600 mt-1">
                           R$ {p.preco}
                         </p>

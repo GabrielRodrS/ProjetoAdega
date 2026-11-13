@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from "react";
 import Header from "@/Components/Header";
 import Pedido from "@/Components/Pedido";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface PedidoItem {
   produtoId: number;
   quantidade: number;
@@ -21,7 +24,7 @@ export default function Pedidos() {
   useEffect(() => {
     async function buscarPedidos() {
       try {
-        const resposta = await fetch("http://localhost:3000/pedidos");
+        const resposta = await fetch(`${API_URL}/pedidos`);
         if (!resposta.ok) {
           throw new Error("Erro ao buscar pedidos");
         }

@@ -15,6 +15,8 @@ interface ProdutoType {
   quantidade: number;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function Produtos() {
   const [produtos, setProdutos] = useState<ProdutoType[]>([]);
   const [filtro, setFiltro] = useState<string>("");
@@ -23,7 +25,7 @@ export default function Produtos() {
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
-        const res = await fetch("http://localhost:3000/products");
+        const res = await fetch(`${API_URL}/products`);
         if (!res.ok) return;
         const data = await res.json();
         const produtosComImagem = data.map((p: ProdutoType) => ({

@@ -26,10 +26,10 @@ export default function Produto({
       onClick={() =>
         router.push(
           `/InterfacePrincipal/Produtos/${id}?nome=${encodeURIComponent(
-            nome
+            nome,
           )}&preco=${encodeURIComponent(preco)}&imagem=${encodeURIComponent(
-            imagem
-          )}&quantidade=${quantidade}`
+            imagem,
+          )}&quantidade=${quantidade}`,
         )
       }
       className="cursor-pointer bg-white border border-gray-200 rounded-3xl shadow-md flex flex-col items-center p-4 hover:scale-105 hover:shadow-xl transition-transform transition-shadow h-60 max-h-60"

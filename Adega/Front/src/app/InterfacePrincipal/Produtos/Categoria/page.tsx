@@ -15,6 +15,8 @@ interface ProdutoType {
   quantidade: number;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 // 1. Componente interno que consome os searchParams
 function ConteudoCategoria() {
   const [produtos, setProdutos] = useState<ProdutoType[]>([]);
@@ -28,9 +30,7 @@ function ConteudoCategoria() {
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:3000/products?categoria=${categoria}`,
-        );
+        const res = await fetch(`${API_URL}/products?categoria=${categoria}`);
         if (!res.ok) return;
         const data = await res.json();
 

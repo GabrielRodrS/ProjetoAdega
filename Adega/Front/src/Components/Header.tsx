@@ -13,10 +13,12 @@ interface Usuario {
   nome: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function Header({ children }: HeaderProps) {
   const router = useRouter();
   const [logado, setLogado] = useState(false);
-  const [nomeUsuario, setNomeUsuario] = useState<string>("");
+  const [nomeUsuario, setNomeUsuario] = useState("");
 
   useEffect(() => {
     const email = localStorage.getItem("email");
@@ -30,8 +32,12 @@ export default function Header({ children }: HeaderProps) {
 
     const buscarUsuario = async () => {
       try {
+        if (!API_URL) {
+          throw new Error("NEXT_PUBLIC_API_URL não configurada");
+        }
+
         const res = await fetch(
-          `http://localhost:3000/users/email/${encodeURIComponent(email)}`,
+          `${API_URL}/users/email/${encodeURIComponent(email)}`,
         );
 
         if (!res.ok) {
@@ -62,6 +68,7 @@ export default function Header({ children }: HeaderProps) {
                 <div className="w-8 h-8 bg-gradient-to-br from-rose-500 to-rose-700 rounded-lg flex items-center justify-center">
                   <Package className="w-5 h-5 text-white" />
                 </div>
+
                 <div>
                   <h1 className="text-lg font-bold text-gray-900">StockFlow</h1>
                   <p className="text-xs text-gray-500 -mt-1">
@@ -88,47 +95,25 @@ export default function Header({ children }: HeaderProps) {
               >
                 Gerenciar
               </button>
-
-              <button
-                onClick={() => router.push("/InterfacePrincipal/Pedidos")}
-                className="px-4 py-1.5 text-rose-700 text-md rounded-md hover:bg-rose-100 transition-colors font-bold cursor-pointer"
-              >
-                Pedidos
-              </button>
-
-              <button
-                onClick={() => router.push("/InterfacePrincipal/Carrinho")}
-                className="px-4 py-1.5 text-rose-700 text-md rounded-md hover:bg-rose-100 transition-colors cursor-pointer font-bold"
-              >
-                Carrinho
-              </button>
             </div>
 
             {/* USER AREA */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-gray-600 hover:text-amber-600">
+              <div className="flex items-center gap-2 text-gray-600">
                 <Users className="w-4 h-4" />
+
                 <span className="text-sm">
                   Bem-vindo(a){nomeUsuario && `, ${nomeUsuario}`}
                 </span>
               </div>
 
               {!logado ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    className="px-3 py-1.5 text-sm text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
-                    onClick={() => router.push("/Login")}
-                  >
-                    Login
-                  </button>
-
-                  <button
-                    className="px-3 py-1.5 bg-rose-600 text-white text-sm rounded-md hover:bg-rose-700 transition-colors cursor-pointer"
-                    onClick={() => router.push("/")}
-                  >
-                    Cadastrar
-                  </button>
-                </div>
+                <button
+                  className="px-3 py-1.5 text-sm text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
+                  onClick={() => router.push("/Login")}
+                >
+                  Login
+                </button>
               ) : (
                 <LogoutButton onLogout={() => setLogado(false)} />
               )}

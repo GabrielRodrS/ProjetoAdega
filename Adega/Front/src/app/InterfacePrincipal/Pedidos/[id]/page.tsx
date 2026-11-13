@@ -6,6 +6,8 @@ import Header from "@/Components/Header";
 import Image from "next/image";
 import { ChevronLeft, ScrollText } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Produto {
   id: number;
   nome: string;
@@ -40,7 +42,7 @@ export default function PedidoDetalhes() {
   useEffect(() => {
     async function buscarPedido() {
       try {
-        const res = await fetch(`http://localhost:3000/pedidos/${id}`);
+        const res = await fetch(`${API_URL}/pedidos/${id}`);
 
         if (!res.ok) {
           setPedido(null);

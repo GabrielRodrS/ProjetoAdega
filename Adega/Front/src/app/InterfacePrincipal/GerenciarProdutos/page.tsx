@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Header from "@/Components/Header";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Produto {
   id: number;
   nome: string;
@@ -44,7 +46,7 @@ export default function GerenciarProdutos() {
 
   async function fetchProdutos() {
     try {
-      const resposta = await fetch("http://localhost:3000/products");
+      const resposta = await fetch(`${API_URL}/products`);
       const dados = await resposta.json();
       setProdutos(dados);
     } catch (erro) {
@@ -54,7 +56,7 @@ export default function GerenciarProdutos() {
 
   async function fetchSecoes() {
     try {
-      const resposta = await fetch("http://localhost:3000/secoes");
+      const resposta = await fetch(`${API_URL}/secoes`);
       const dados = await resposta.json();
       setSecoes(dados);
     } catch (erro) {
@@ -94,7 +96,7 @@ export default function GerenciarProdutos() {
         numero.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        })
+        }),
       );
     } else {
       setPreco("");
@@ -112,7 +114,7 @@ export default function GerenciarProdutos() {
       const precoNumerico = preco.replace(/\./g, "").replace(",", ".");
       const precoFinal = parseFloat(precoNumerico).toFixed(2);
 
-      const resposta = await fetch("http://localhost:3000/products", {
+      const resposta = await fetch(`${API_URL}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -147,7 +149,7 @@ export default function GerenciarProdutos() {
   }
 
   function handleEditChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) {
     const { name, value } = e.target;
     if (name === "preco") {
@@ -181,12 +183,12 @@ export default function GerenciarProdutos() {
       };
 
       const resposta = await fetch(
-        `http://localhost:3000/products/atualizar/${editingProductId}`,
+        `${API_URL}/products/atualizar/${editingProductId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       if (!resposta.ok) throw new Error("Erro ao salvar produto");
@@ -202,10 +204,8 @@ export default function GerenciarProdutos() {
   async function confirmarRemoverProduto(id: number, nomeProduto: string) {
     try {
       const resposta = await fetch(
-        `http://localhost:3000/products/remover/${encodeURIComponent(
-          nomeProduto
-        )}`,
-        { method: "DELETE" }
+        `${API_URL}/products/remover/${encodeURIComponent(nomeProduto)}`,
+        { method: "DELETE" },
       );
 
       if (!resposta.ok) throw new Error("Erro ao remover produto");
@@ -325,8 +325,8 @@ export default function GerenciarProdutos() {
                             ? p.imagem.startsWith("http")
                               ? p.imagem
                               : p.imagem.startsWith("/")
-                              ? p.imagem
-                              : `/${p.imagem}` // garante que começa com /
+                                ? p.imagem
+                                : `/${p.imagem}` // garante que começa com /
                             : "/imagens/default.jpg" // fallback
                         }
                         alt={p.nome || "Produto"}
