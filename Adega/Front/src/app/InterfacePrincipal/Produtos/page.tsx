@@ -54,21 +54,21 @@ export default function Produtos() {
   return (
     <Header>
       <HeaderCategorias />
-      <div className="bg-white flex flex-col items-center h-full">
+      <div className="bg-white flex flex-col items-center h-full w-full overflow-x-hidden">
         <h1 className="text-2xl font-extrabold text-black m-5">
           Produtos Disponíveis
         </h1>
-        <div className="flex flex-wrap justify-center items-center gap-4 mb-6 w-full px-6 text-gray-600">
+        <div className="flex flex-wrap justify-center items-center gap-4 mb-6 px-6 text-gray-600">
           <input
             type="text"
             placeholder="Pesquisar produto..."
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
-            className="border border-gray-300 text-black rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-rose-400"
+            className="border border-gray-300 text-black rounded-lg px-4 py-2 w-64 max-w-full focus:outline-none focus:ring-2 focus:ring-rose-400"
           />
           <button
             onClick={() => setOrdenacao("maiorPreco")}
-            className={`px-4 ml-5 py-2 rounded-lg border transition-colors duration-200 ${
+            className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
               ordenacao === "maiorPreco"
                 ? "bg-amber-500 text-white border-amber-500 cursor-pointer"
                 : "bg-white text-black border-gray-300 hover:bg-gray-100 cursor-pointer"
@@ -97,7 +97,7 @@ export default function Produtos() {
             Alfabético
           </button>
         </div>
-        <main className="bg-white w-full flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 p-6 pt-2 overflow-auto">
+        <main className="bg-white w-full flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 p-6 pt-2 overflow-x-hidden">
           {produtosFiltrados.length === 0 ? (
             <p className="text-gray-500">Nenhum produto encontrado.</p>
           ) : (

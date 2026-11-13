@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 interface FormData {
@@ -24,6 +24,11 @@ export default function HomePage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Requisição de "aquecimento": acorda o servidor enquanto o usuário digita
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`).catch(() => {});
+  }, []);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
@@ -291,6 +296,36 @@ export default function HomePage() {
           >
             Limpar Formulário
           </button>
+
+          {isLoading && (
+            <div
+              role="status"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                padding: "0.75rem 1rem",
+                backgroundColor: "#fef3c7",
+                border: "1px solid #fcd34d",
+                borderRadius: "6px",
+                color: "#92400e",
+                fontSize: "0.875rem",
+              }}
+            >
+              <div
+                style={{
+                  width: "16px",
+                  height: "16px",
+                  flexShrink: 0,
+                  border: "2px solid #92400e40",
+                  borderTop: "2px solid #92400e",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                }}
+              />
+              <span>Iniciando serviços, pode levar até 2 minutos...</span>
+            </div>
+          )}
         </form>
 
         <p
